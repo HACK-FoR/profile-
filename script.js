@@ -1,266 +1,148 @@
-// JavaScript for English Page - No Horizontal Movements
+// جافاسكريبت للصفحة الرئيسية - بدون حركات أفقية
 document.addEventListener('DOMContentLoaded', function() {
-    // Static Navigation
-    const navbar = document.querySelector('.navbar');
-    const navToggle = document.querySelector('.nav-toggle');
-    const navLinks = document.querySelector('.nav-links');
+    // تأثير عداد الإحصائيات
+    const statValues = document.querySelectorAll('.stat-value');
     
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
-    });
+    if (statValues.length > 0) {
+        statValues.forEach(stat => {
+            const target = parseInt(stat.getAttribute('data-count'));
+            const suffix = stat.textContent.includes('+') ? '+' : '';
+            const duration = 2000;
+            const startTime = Date.now();
+            
+            const updateCounter = () => {
+                const currentTime = Date.now();
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeProgress = 1 - Math.pow(2, -10 * progress);
+                const currentValue = Math.floor(easeProgress * target);
+                
+                stat.textContent = currentValue + suffix;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateCounter);
+                }
+            };
+            
+            // بدء العد بعد تأخير قصير
+            setTimeout(updateCounter, 500);
+        });
+    }
     
-    // Toggle navigation menu for mobile
-    navToggle.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
-    });
+    // تأثير تتبع الماوس للدوائر (فقط حركات رأسية)
+    const circles = document.querySelectorAll('.circle');
     
-    // Close menu when clicking a link
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-            navLinks.classList.remove('active');
+    document.addEventListener('mousemove', (e) => {
+        const mouseY = e.clientY / window.innerHeight;
+        
+        circles.forEach((circle, index) => {
+            const speed = 0.1 + (index * 0.05);
+            const y = (mouseY - 0.5) * 50 * speed;
+            
+            circle.style.transform = `translateY(${y}px)`; // حركة رأسية فقط
         });
     });
     
-    // Counter Effects (vertical only)
-    const statValues = document.querySelectorAll('.stat-value');
+    // تأثير اهتزاز للبطاقات عند التمرير (فقط حركات رأسية)
+    const langCards = document.querySelectorAll('.lang-card');
     
-    const animateCounter = (element, target, duration = 2000) => {
-        const startValue = 0;
-        const startTime = Date.now();
+    const createRipple = (element, x, y) => {
+        const ripple = document.createElement('div');
+        ripple.classList.add('ripple-effect');
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        element.appendChild(ripple);
         
-        const updateCounter = () => {
-            const currentTime = Date.now();
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
+        setTimeout(() => {
+            ripple.remove();
+        }, 1000);
+    };
+    
+    langCards.forEach(card => {
+        card.addEventListener('mouseenter', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            createRipple(card, x, y);
             
-            // Easing function
-            const easeProgress = 1 - Math.pow(1 - progress, 3);
-            const currentValue = Math.floor(easeProgress * target);
-            
-            element.textContent = currentValue;
-            
-            if (progress < 1) {
-                requestAnimationFrame(updateCounter);
-            }
+            // اهتزاز خفيف (فقط رأسية)
+            card.style.transform = 'translateY(-10px)';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // تأثير التكبير للصورة عند التمرير (فقط حركات رأسية)
+    const profileImg = document.querySelector('.profile-img');
+    
+    if (profileImg) {
+        let scale = 1.05;
+        let targetScale = 1.05;
+        let scaleSpeed = 0;
+        
+        window.addEventListener('scroll', () => {
+            targetScale = 1.05 + (window.pageYOffset * 0.0001);
+            scaleSpeed = 0.1;
+        });
+        
+        const animateScale = () => {
+            scale += (targetScale - scale) * scaleSpeed;
+            profileImg.style.transform = `scale(${Math.min(scale, 1.1)})`; // فقط تكبير
+            requestAnimationFrame(animateScale);
         };
         
-        updateCounter();
-    };
+        animateScale();
+    }
     
-    // Intersection Observer for animations (vertical only)
-    const observerOptions = {
-        threshold: 0.2,
-        rootMargin: '0px 0px -100px 0px'
-    };
+    // تأثير النقاط العائمة (فقط حركات رأسية)
+    const dots = document.querySelectorAll('.dot');
+    
+    dots.forEach((dot, index) => {
+        dot.style.animationDuration = `${3 + index}s`;
+        dot.style.animationDelay = `${index * 0.5}s`;
+    });
+    
+    // تأثير ظهور العناصر عند التمرير (فقط حركات رأسية)
+    const animatedElements = document.querySelectorAll('.animate-title, .animate-subtitle, .animate-fade, .animate-slide-left, .animate-slide-right, .animate-stat');
     
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                const element = entry.target;
-                
-                // Statistics counters
-                if (element.classList.contains('stat-value')) {
-                    const target = parseInt(element.getAttribute('data-count'));
-                    animateCounter(element, target, 1500);
-                }
-                
-                // Skills progress bars
-                if (element.classList.contains('skill-progress')) {
-                    const width = element.getAttribute('data-width') + '%';
-                    setTimeout(() => {
-                        element.style.width = width;
-                    }, 300);
-                }
-                
-                // Graph bars
-                if (element.classList.contains('graph-bar')) {
-                    const height = element.getAttribute('data-value') + '%';
-                    setTimeout(() => {
-                        element.style.height = height;
-                    }, 500);
-                }
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)'; // فقط حركة رأسية
             }
         });
-    }, observerOptions);
-    
-    // Observe all required elements
-    document.querySelectorAll('.stat-value, .skill-progress, .graph-bar').forEach(el => {
-        observer.observe(el);
+    }, {
+        threshold: 0.1
     });
     
-    // Typing effect for title (no horizontal movement)
-    const heroTitle = document.querySelector('.hero-title');
-    if (heroTitle) {
-        const text = heroTitle.textContent;
-        heroTitle.textContent = '';
+    animatedElements.forEach(element => {
+        observer.observe(element);
+    });
+    
+    // إزالة التحولات الأفقية من الأنيميشنز
+    document.querySelectorAll('.animate-slide-left, .animate-slide-right').forEach(el => {
+        el.style.transform = 'translateY(30px)'; // تغيير من X إلى Y
+    });
+    
+    // تأثير كتابة للنص الوصفي
+    const description = document.querySelector('.description');
+    if (description) {
+        const originalText = description.textContent;
+        description.textContent = '';
         
         let i = 0;
         const typeWriter = () => {
-            if (i < text.length) {
-                heroTitle.textContent += text.charAt(i);
+            if (i < originalText.length) {
+                description.textContent += originalText.charAt(i);
                 i++;
-                setTimeout(typeWriter, 100);
+                setTimeout(typeWriter, 30);
             }
         };
         
-        // Start typing after delay
-        setTimeout(typeWriter, 500);
-    }
-    
-    // Image scaling on scroll (vertical only)
-    const mainImage = document.querySelector('.main-image');
-    if (mainImage) {
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            // Only vertical scaling
-            const scale = 1 + (scrolled * 0.0001);
-            mainImage.style.transform = `scale(${Math.min(scale, 1.05)})`;
-        });
-    }
-    
-    // Particle effects around image (vertical only)
-    const imageContainer = document.querySelector('.image-container');
-    if (imageContainer) {
-        imageContainer.addEventListener('mousemove', (e) => {
-            const rect = imageContainer.getBoundingClientRect();
-            const y = e.clientY - rect.top;
-            
-            const sparkles = document.querySelectorAll('.image-sparkle');
-            
-            sparkles.forEach((sparkle, index) => {
-                const centerY = rect.height / 2;
-                const distance = Math.abs(y - centerY);
-                const maxDistance = rect.height / 2;
-                const intensity = 1 - (distance / maxDistance);
-                
-                // Vertical movement only
-                const moveDistance = 20 * intensity;
-                const newY = y < centerY ? -moveDistance : moveDistance;
-                
-                sparkle.style.transform = `translateY(${newY}px)`;
-                sparkle.style.opacity = intensity;
-            });
-        });
-        
-        imageContainer.addEventListener('mouseleave', () => {
-            const sparkles = document.querySelectorAll('.image-sparkle');
-            sparkles.forEach(sparkle => {
-                sparkle.style.transform = 'translateY(0)';
-                sparkle.style.opacity = '1';
-            });
-        });
-    }
-    
-    // Card effects (vertical only)
-    const cards = document.querySelectorAll('.service-card, .advantage-card, .exp-item, .platform-card');
-    cards.forEach(card => {
-        card.addEventListener('click', function() {
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 200);
-        });
-        
-        // Hover effect (vertical only)
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-10px)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
-    
-    // Contact form
-    const messageForm = document.getElementById('messageForm');
-    if (messageForm) {
-        messageForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const name = formData.get('name');
-            const email = formData.get('email');
-            const message = formData.get('message');
-            
-            // Here you can add code to send the message
-            console.log('Sending message:', { name, email, message });
-            
-            // Success message
-            alert('Your message has been sent successfully! I will contact you soon.');
-            this.reset();
-        });
-    }
-    
-    // Smooth scrolling for anchor links (vertical only)
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-            
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                const offset = 80;
-                const targetPosition = targetElement.offsetTop - offset;
-                
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
-    
-    // Page load animation
-    window.addEventListener('load', () => {
-        document.body.classList.add('loaded');
-        
-        // Animate elements after load (vertical only)
-        setTimeout(() => {
-            const animatedElements = document.querySelectorAll('.service-card, .advantage-card, .exp-item');
-            animatedElements.forEach((el, index) => {
-                setTimeout(() => {
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
-        }, 500);
-    });
-    
-    // Animated background particles (vertical only)
-    const bgParticles = document.querySelectorAll('.bg-particle');
-    bgParticles.forEach(particle => {
-        const duration = 20 + Math.random() * 10;
-        const delay = Math.random() * 10;
-        particle.style.animationDuration = `${duration}s`;
-        particle.style.animationDelay = `${delay}s`;
-    });
-    
-    // Prevent horizontal movements for language cards
-    const arabicCard = document.querySelector('.arabic-card');
-    if (arabicCard) {
-        arabicCard.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-10px)'; // Vertical only
-        });
-        
-        arabicCard.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    }
-    
-    const englishCard = document.querySelector('.english-card');
-    if (englishCard) {
-        englishCard.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-10px)'; // Vertical only
-        });
-        
-        englishCard.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
+        setTimeout(typeWriter, 1000);
     }
 });
